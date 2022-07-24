@@ -1,21 +1,28 @@
-import { useCallback, useState } from "react";
-import { setSort } from "../../../store/feature/posts/slice";
-import { useAppDispatch } from "../../../store/hooks";
+import { useCallback } from "react";
+import { useSearchParams } from "react-router-dom";
 import css from "../style.module.scss";
 
 export const TableHeader = () => {
-  const [toggleSort, setToggleSort] = useState("asc");
-
-  const dispatch = useAppDispatch();
+  const [search, nextSearch] = useSearchParams({
+    order: "asc",
+    page: "1",
+  });
 
   const changeSortBy = useCallback(
     (e: any) => {
-      setToggleSort((prev) => (prev === "asc" ? "desc" : "asc"));
-      dispatch(
-        setSort({ sort: e.target.getAttribute("data-sort"), order: toggleSort })
-      );
+      const currentOrder = search.get("order") || "asc";
+      let nextOrder = currentOrder === "asc" ? "desc" : "asc";
+
+      const currentSort = search.get("sort") || "id";
+      const nextSort = e.target.getAttribute("data-sort");
+
+      if (currentSort !== nextSort) {
+        nextOrder = "asc";
+      }
+
+      nextSearch({ sort: nextSort, order: nextOrder, page: "1" });
     },
-    [dispatch, toggleSort]
+    [search, nextSearch]
   );
 
   return (

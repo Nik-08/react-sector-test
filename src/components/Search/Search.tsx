@@ -1,36 +1,34 @@
-import {
-  ChangeEventHandler,
-  FormEventHandler,
-  useCallback,
-  useState,
-} from "react";
+import { FormEventHandler, useCallback, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 
-import { setSearch } from "../../store/feature/posts/slice";
-import { useAppDispatch } from "../../store/hooks";
-import { Input } from "../ui";
-import css from "./style.module.scss";
+import { Input } from '../ui';
+import css from './style.module.scss';
 
 export const Search = () => {
-  const [value, setValue] = useState<string>("");
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [search, nextSearch] = useSearchParams({
+    q: '',
+  });
+  const defaultValue = search.get('q') || '';
 
-  const getValue: ChangeEventHandler<HTMLInputElement> = useCallback((e) => {
-    setValue(e.target.value);
-  }, []);
-
-  const dispatch = useAppDispatch();
-
-  const InputChange: FormEventHandler<HTMLFormElement> = useCallback(
-    (e: any) => {
+  const onSubmit: FormEventHandler<HTMLFormElement> = useCallback(
+    e => {
       e.preventDefault();
 
-      dispatch(setSearch(value));
+      const nextValue = inputRef.current?.value || '';
+      nextSearch({ q: nextValue });
     },
-    [dispatch, value]
+    [nextSearch]
   );
 
   return (
-    <form className={css.form} onSubmit={InputChange}>
-      <Input placeholder='Поиск' type='text' onChange={getValue} />
+    <form className={css.form} onSubmit={onSubmit}>
+      <Input
+        defaultValue={defaultValue}
+        ref={inputRef}
+        placeholder="Поиск"
+        type="text"
+      />
       <button className={css.form__button}></button>
     </form>
   );

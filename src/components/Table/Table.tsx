@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { FC, useEffect } from "react";
 import { selectors } from "../../store/feature/posts";
 import { getAll } from "../../store/feature/posts/slice";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
@@ -7,28 +7,35 @@ import { TableFooter } from "./TableFooter";
 import { TableHeader } from "./TableHeader";
 import { TableRow } from "./TableRow";
 import { Spinner } from "../";
+import { createStructuredSelector } from "reselect";
 
-export const Table = () => {
-  const { items, loading, error, limit, total, page, sort, order, q } =
-    useAppSelector((state: AppState) => ({
-      items: selectors.items(state),
-      loading: selectors.loading(state),
-      error: selectors.error(state),
-      page: selectors.page(state),
-      total: selectors.total(state),
-      limit: selectors.limit(state),
-      sort: selectors.sort(state),
-      order: selectors.order(state),
-      q: selectors.q(state),
-    }));
+const rootSelector = createStructuredSelector({
+  items: selectors.items,
+  loading: selectors.loading,
+  error: selectors.error,
+  total: selectors.total,
+  limit: selectors.limit,
+});
+
+interface Props {
+  page?: number;
+  sort?: string;
+  order?: string;
+  q?: string;
+}
+export const Table: FC<Props> = ({
+  page = 1,
+  sort = "id",
+  order = "asc",
+  q = "",
+}) => {
+  const { items, loading, error, limit, total } = useAppSelector(rootSelector);
 
   const dispatch = useAppDispatch();
 
   useEffect(() => {
-    dispatch(getAll());
+    dispatch(getAll({ page, sort, order, q }));
   }, [dispatch, page, sort, order, q]);
-
-  console.log(items);
 
   return (
     <div className={css.main__table}>
@@ -39,8 +46,9 @@ export const Table = () => {
           <TableHeader />
           {!error ? (
             <div className={css.main__table_body}>
-              {items &&
-                items.map((item, id) => <TableRow key={id} {...item} />)}
+              {items.map((item, id) => (
+                <TableRow key={id} {...item} />
+              ))}
             </div>
           ) : null}
 

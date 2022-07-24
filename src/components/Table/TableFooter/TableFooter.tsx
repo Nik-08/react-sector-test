@@ -1,7 +1,6 @@
 import classNames from "classnames";
-import { FC, useCallback } from "react";
-import { setNextPage } from "../../../store/feature/posts/slice";
-import { useAppDispatch } from "../../../store/hooks";
+import { FC, useCallback, useMemo } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Button } from "../../ui";
 import css from "../style.module.scss";
 
@@ -12,64 +11,47 @@ interface TableFooterProps {
 }
 
 export const TableFooter: FC<TableFooterProps> = ({ page, limit, total }) => {
-  const maxPage = Math.ceil(total / limit);
-  let paginationArr = [];
+  const [, nextSearch] = useSearchParams({
+    page: "1",
+  });
 
-  for (let i = maxPage; i > 0; i--) {
-    paginationArr.push(i);
-  }
-
-  const dispatch = useAppDispatch();
-
-  const nextPage = useCallback(
-    (page: number) => {
-      dispatch(setNextPage(page + 1));
-    },
-    [dispatch]
-  );
-
-  const prevPage = useCallback(
-    (page: number) => {
-      dispatch(setNextPage(page - 1));
-    },
-    [dispatch]
-  );
+  const maxPage = useMemo(() => Math.ceil(total / limit), [total, limit]);
 
   const changePage = useCallback(
-    (e: any) => {
-      if (typeof Number(e.target.value) === "number") {
-        dispatch(setNextPage(Number(e.target.value)));
-      }
+    (page: number) => {
+      const safeNextPage = Math.min(maxPage, Math.max(page, 1));
+
+      nextSearch({ page: String(safeNextPage) });
     },
-    [dispatch]
+    [maxPage, nextSearch]
   );
   return (
     <div className={css.main__table_footer}>
-      {page > 1 ? (
-        <Button text='Назад' onClick={() => prevPage(page)} />
-      ) : (
-        <Button text='Назад' disabled />
-      )}
+      <Button
+        text='Назад'
+        disabled={page <= 1}
+        onClick={() => changePage(page - 1)}
+      />
 
       <div className={css.main__table_paginations}>
-        {paginationArr.reverse().map((item, i) => (
+        {new Array(maxPage).fill(0).map((_, i) => (
           <button
-            key={i + item}
-            value={item}
-            onClick={changePage}
+            key={i + 1}
+            onClick={() => changePage(i + 1)}
+            data-page={i + 1}
             className={classNames(css.main__table_pagination, {
-              [css._active]: item === page,
+              [css._active]: i + 1 === page,
             })}
           >
-            {item}
+            {i + 1}
           </button>
         ))}
       </div>
-      {page < maxPage ? (
-        <Button text='Далее' onClick={() => nextPage(page)} />
-      ) : (
-        <Button text='Далее' disabled />
-      )}
+      <Button
+        disabled={page >= maxPage}
+        text='Далее'
+        onClick={() => changePage(page + 1)}
+      />
     </div>
   );
 };

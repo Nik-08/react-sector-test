@@ -12,10 +12,6 @@ interface PostsState {
   items: PostsItem[];
   total: number;
   limit: number;
-  page: number;
-  sort: string;
-  order: string;
-  q: string;
 }
 
 interface PostsItem {

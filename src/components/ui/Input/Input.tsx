@@ -1,5 +1,5 @@
-import { DetailedHTMLProps, FC, InputHTMLAttributes } from "react";
-import css from "./style.module.scss";
+import { DetailedHTMLProps, forwardRef, InputHTMLAttributes } from 'react';
+import css from './style.module.scss';
 
 interface InputProps
   extends DetailedHTMLProps<
@@ -7,6 +7,6 @@ interface InputProps
     HTMLInputElement
   > {}
 
-export const Input: FC<InputProps> = ({ ...rest }) => {
-  return <input className={css.input} {...rest} />;
-};
+export const Input = forwardRef<HTMLInputElement, InputProps>((props, ref) => {
+  return <input ref={ref} className={css.input} {...props} />;
+});

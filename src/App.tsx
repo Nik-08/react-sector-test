@@ -1,15 +1,12 @@
-import React from "react";
-import { Container, Search, Table } from "./components";
+import { Route, Routes } from "react-router-dom";
+import { NotFoundPage } from "./pages/NotFoundPage";
+import { PostsPage } from "./pages/PostsPage";
 
-function App() {
+export const App = () => {
   return (
-    <Container>
-      <Search />
-      <div className='main'>
-        <Table />
-      </div>
-    </Container>
+    <Routes>
+      <Route element={<PostsPage />} path='/' />
+      <Route path='*' element={<NotFoundPage />} />
+    </Routes>
   );
-}
-
-export default App;
+};

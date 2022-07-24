@@ -1,4 +1,4 @@
-import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
 import { RootState } from "../../store";
 
@@ -8,53 +8,46 @@ export const initialState: PostsState = {
   error: null,
   total: 0,
   limit: 10,
-  page: 1,
-  sort: "id",
-  order: "asc",
-  q: "",
 };
+
+export interface GetAllPayload {
+  page: number;
+  sort: string;
+  order: string;
+  q: string;
+}
 
 export const getAll = createAsyncThunk<
   PostsItem[],
-  void,
+  GetAllPayload,
   {
     rejectValue: string;
     state: RootState;
   }
->("posts/getAll", async (_, { rejectWithValue, getState }): Promise<any> => {
-  try {
-    let { page, limit, sort, order, q } = getState().posts;
+>(
+  "posts/getAll",
+  async (payload, { rejectWithValue, getState }): Promise<any> => {
+    try {
+      const { page, sort, order, q } = payload;
+      let { limit } = getState().posts;
 
-    q = q !== "" ? q : "";
+      const response = await axios.get<PostsItem[]>(
+        `https://jsonplaceholder.typicode.com/posts?_page=${page}&_limit=${limit}&_sort=${sort}&_order=${order}&q=${q}`
+      );
 
-    const response = await axios.get(
-      `https://jsonplaceholder.typicode.com/posts?_page=${page}&_limit=${limit}&_sort=${sort}&_order=${order}&q=${q}`
-    );
+      if (!response) throw new Error("Server Error!");
 
-    if (!response) throw new Error("Server Error!");
-
-    return response;
-  } catch (e: any) {
-    return rejectWithValue(String(e.message));
+      return response;
+    } catch (e: any) {
+      return rejectWithValue(String(e.message));
+    }
   }
-});
+);
 
 export const postsSlice = createSlice({
   name: "posts",
   initialState,
-  reducers: {
-    setNextPage: (state, action: PayloadAction<number>) => {
-      state.page = action.payload;
-    },
-    setSort: (state, action: PayloadAction<SortBy>) => {
-      state.sort = action.payload.sort;
-      state.order = action.payload.order;
-    },
-    setSearch: (state, action: PayloadAction<string>) => {
-      state.q = action.payload;
-      state.page = 1;
-    },
-  },
+  reducers: {},
   extraReducers: (builder) => {
     builder
       .addCase(getAll.pending, (state) => {
@@ -73,7 +66,5 @@ export const postsSlice = createSlice({
       });
   },
 });
-
-export const { setNextPage, setSort, setSearch } = postsSlice.actions;
 
 export default postsSlice.reducer;
