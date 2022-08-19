@@ -11,8 +11,9 @@ interface TableFooterProps {
 }
 
 export const TableFooter: FC<TableFooterProps> = ({ page, limit, total }) => {
-  const [, nextSearch] = useSearchParams({
+  const [search, nextSearch] = useSearchParams({
     page: "1",
+    order: "asc",
   });
 
   const maxPage = useMemo(() => Math.ceil(total / limit), [total, limit]);
@@ -20,8 +21,15 @@ export const TableFooter: FC<TableFooterProps> = ({ page, limit, total }) => {
   const changePage = useCallback(
     (page: number) => {
       const safeNextPage = Math.min(maxPage, Math.max(page, 1));
+      const currentOrder = search.get("order") || "asc";
 
-      nextSearch({ page: String(safeNextPage) });
+      const currentSort = search.get("sort") || "id";
+
+      nextSearch({
+        sort: currentSort,
+        order: currentOrder,
+        page: String(safeNextPage),
+      });
     },
     [maxPage, nextSearch]
   );
